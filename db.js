@@ -10,9 +10,12 @@ const pool = new Pool({
 
 export const createUser = async (userInfo) => {
 
+    const { username, email, password } = userInfo
+
+
     const query = {
         text: 'INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING *',
-        values: [userInfo.username, userInfo.email, userInfo.password]
+        values: [username, email, password]
     }
     const newUser = await pool.query(query)
     return newUser.rows[0]
@@ -26,4 +29,17 @@ export const getUsers = async (limit = 10) => {
     }
     const res = await pool.query(query)
     return res.rows
+}
+
+export const loginUser = async (usernameOrEmail) => {
+
+    const isUsername = !usernameOrEmail.includes('@')
+
+    const query = isUsername
+        ? { text: 'SELECT * FROM users WHERE username = $1 LIMIT 1', values: [usernameOrEmail]}
+        : { text: 'SELECT * FROM users WHERE email = $1 LIMIT 1', values: [usernameOrEmail]}
+
+    const result = await pool.query(query)
+    return result.rows[0]
+    
 }
